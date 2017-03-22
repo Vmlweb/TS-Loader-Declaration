@@ -1,6 +1,6 @@
 import * as path from 'path'
 
-export class DeclarationBundlerPlugin{
+export class TSDeclerationsPlugin{
 	
 	out: string
 	module: string
