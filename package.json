@@ -1,10 +1,10 @@
 {
   "name": "ts-loader-decleration",
-  "version": "0.5.5",
+  "version": "0.6.5",
   "description": "Enables bundled Webpack Typescript declarations from exports.",
   "main": "index.js",
   "scripts": {
-    "prepublish": "tsc index.ts"
+	"patch": "tsc index.ts && npm version patch && npm publish"
   },
   "repository": {
     "type": "git",
