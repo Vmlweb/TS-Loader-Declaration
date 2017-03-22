@@ -102,16 +102,16 @@ export class TSDeclerationsPlugin{
 					
 						//Append modified file to combined decleration
 						const lines = segment.split('\n')
-						combinedDecls += '\n\texport ' + lines.pop()
+						combinedDecls += 'export ' + lines.pop()
 						combinedDecls += lines.filter(line => {
 							return !line.startsWith('import') && !line.startsWith('//') && !line.startsWith('private')
-						}).join('\n\t') + '\n'
+						}).join('\n') + '\n'
 					}
 				}
 			})
 			
 			//Wrap in typescript module
-			combinedDecls = 'declare namespace ' + this.module + '{\n' + combinedDecls + '}'
+			//combinedDecls = 'declare namespace ' + this.module + '{\n' + combinedDecls + '}'
 
 			//Add combined decleration file to emission
 			compilation.assets[this.out] = {
