@@ -63,7 +63,7 @@ export class TSDeclerationsPlugin{
 			Object.keys(seperateDecls).forEach(name => {
 				
 				//Extract content from other files 
-				for (const segment of seperateDecls[name].split(/export /gm)){
+				for (const segment of seperateDecls[name].split(/^(export|class|interface|declare|enum) /gm)){
 					
 					//Loop through each line of segment
 					let match

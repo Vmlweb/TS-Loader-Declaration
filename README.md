@@ -1,6 +1,6 @@
 # TS Loader Decleration
 
-Enables bundled Webpack Typescript declarations from exports.
+Generates bundled Webpack Typescript declarations from exports.
 
 Inspired by [declaration-bundler-webpack-plugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin).
 
