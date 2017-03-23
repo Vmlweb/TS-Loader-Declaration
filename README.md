@@ -15,6 +15,7 @@ npm install --save-dev ts-loader-decleration
 ## Configuration
 
 First ensure `declaration: true` is set in your `tsconfig.json` for declaration files to be generated.
+
 Then set `output.libraryTarget: 'commonjs'` in your Webpack config to allow the bundle to be imported.
 
 Finally include the plugin in your Webpack configuration.
