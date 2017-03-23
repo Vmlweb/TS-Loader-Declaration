@@ -1,4 +1,9 @@
 import * as path from 'path'
+import * as rimraf from 'rimraf'
+import * as fs from 'fs'
+import * as dts from 'dts-bundle'
+import * as esprima from 'esprima'
+import * as beautify from 'js-beautify'
 
 export class TSDeclerationsPlugin{
 	
@@ -15,9 +20,158 @@ export class TSDeclerationsPlugin{
 	}
 
 	apply(compiler){
+	
+		//Wait for compiler to emit files
+		compiler.plugin('done', (stats) => {
+			
+			//Create shared bundle and remove old source files
+			const out = path.join(stats.compilation.options.output.path, this.out)
+			dts.bundle({
+                name: this.module,
+                out: out,
+                main: path.join(stats.compilation.options.output.path, stats.compilation.options.entry.replace('.ts', '.d.ts')),
+                removeSource: true
+            })
+            
+            //Remove source directory
+            rimraf.sync(path.join(stats.compilation.options.output.path, path.dirname(stats.compilation.options.entry)))
+            
+            //Read decleration bundle from file
+            const bundle = fs.readFileSync(out).toString()
+            let newBundle = ''
+            
+            //Prepare working variables
+            let imports = {}
+            let exports = []
+            
+			//Loop through each line
+			const subBundles = bundle.split('declare module \'')
+			subBundles.shift()
+			for (let segment of subBundles){
+				const module = segment.trim()
+				const name = module.substring(0, module.indexOf("'"))
+				
+				//Check whether module is entry
+				if (name === this.module){
+			
+					//Prepare temp variables
+					let tempImports = []
+		            let importing = false
+		            let exporting = false
+		            let filename = false
+		            let literal = false
+			
+					//Loop through each token in module
+					for (const token of esprima.tokenize("'" + module)){
+			
+						//Start importing
+						if (token.type === 'Keyword' && token.value === 'import'){
+							importing = true
+							tempImports = []
+						}
+			
+						//Append import
+						if (importing && token.type === 'Identifier' && token.value !== 'from'){
+							tempImports.push(token.value)
+						}
+						
+						//Look for import filename
+						if (importing && token.value === 'from'){
+							filename = true
+						}
+						if (importing && filename && token.type === 'String'){
+							importing = false
+							filename = false
+							imports[token.value.replace(/\'/g, '')] = tempImports
+						}
+			
+						//Start exporting
+						if (token.type === 'Keyword' && token.value === 'export'){
+							exporting = true
+						}
+						
+						//Export literally
+						if (exporting && token.type === 'Keyword') {
+							literal = true
+                        }
+                        if (exporting && literal && token.type === 'Identifier'){
+							exports.push(token.value)
+							literal = false
+							exporting = false
+						}
+			
+						//Append export
+						if (exporting && token.type === 'Identifier'){
+							exports.push(token.value)
+						}
+			
+						//Stop exporting
+						if (exporting && token.type === 'Punctuator' && token.value === '}'){
+							exporting = true
+						}
+					}
+					
+					//Add all remaining exports to root
+					const root = []
+					for (const exp of exports){
+						let found = false
+						Object.keys(imports).forEach(name => {
+							if (imports[name].indexOf(exp) > -1){
+								found = true
+							}
+						})
+						if (!found){
+							root.push(exp)
+						}
+					}
+					imports[this.module] = root	
+				}
+				
+				//Check whether name exists in imports
+				if (!imports.hasOwnProperty(name)){
+					continue
+				}
+				
+				//Find each import to include
+				for (const imprt of imports[name]){
+				
+					//Prepare temp variables
+					let end = 0
+					let count = 0
+					let first = false
+					
+					//Check for start position of import
+					const check = new RegExp('export(\\s.*\\s|\\s)(class|interface|enum|const|let|var|function)\\s' + imprt + '(\\s.*\\s|\\s){').exec(module)
+					if (!check){ continue }
+					
+					//Find range of import to extract
+					const submodule = module.substring(check.index)
+					for (const token of esprima.tokenize(submodule, { range: true })){
+						if (token.type === 'Punctuator' && token.value === '{'){
+							count += 1
+							first = true
+						}
+						if (token.type === 'Punctuator' && token.value === '}'){
+							count -= 1
+						}
+						if (token.type === 'Punctuator' && token.value === '}' && count === 0 && first){
+							end = token.range[1]
+							break
+						}
+					}
+					
+					//Extract and dump in new bundle
+					newBundle += submodule.substring(0, end) + '\n'
+				}
+			}
+			
+	        //Write new bundle to file
+	        fs.writeFileSync(out, beautify(newBundle, { indent_size: 1, indent_with_tabs: true }))
+		})
 		
+		//OLD STATIC ANALYSER
 		//when the compiler is ready to emit files
-		compiler.plugin('emit', (compilation, done) => {
+		/*compiler.plugin('emit', (compilation, done) => {
 			
 			//Remove all decleration files from emission and store locally
 			const entry = compilation.options.entry.replace('./', '').replace('.ts', '.d.ts')
@@ -37,8 +191,9 @@ export class TSDeclerationsPlugin{
 			const exports = []
 			
 			//Loop through entry file
-			for (const line of seperateDecls[entry].split('\n')){
-						
+			for (const spaceLine of seperateDecls[entry].split('\n')){
+				const line = spaceLine.trim()
+				
 				//Parse import
 				if (line.startsWith('import ')){
 					
@@ -75,11 +230,11 @@ export class TSDeclerationsPlugin{
 						}
 						
 						//Extract type identifier
-						/*const type = /.*:\s?(.*)/g.exec(line)
+						const type = /.*:\s?(.*)/g.exec(line)
 						if (type && type.length >= 1){
 							if ()
 							break
-						}*/
+						}
 						
 						//Extract name from export
 						match = /(\S*?)\s?{/g.exec(line)
@@ -113,6 +268,6 @@ export class TSDeclerationsPlugin{
 			}
 
 			done()
-		})
+		})*/
 	}
 }
