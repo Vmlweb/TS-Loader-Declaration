@@ -25,8 +25,7 @@ const { TSDeclerationsPlugin } = require('ts-loader-decleration')
 module.exports = {
 	plugins: [
 		new TypescriptDeclerations({
-			out: './bundle.d.ts',
-			module: 'MyModule'
+			out: './bundle.d.ts'
 		})
 	],
 	module: {

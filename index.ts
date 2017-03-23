@@ -8,15 +8,9 @@ import * as beautify from 'js-beautify'
 export class TSDeclerationsPlugin{
 	
 	out: string
-	module: string
 
 	constructor(options: any = {}){
 		this.out = options.out || './bundle.d.ts'
-		this.module = options.module
-
-		if (!options.module){
-			throw new Error('Please specify a module name')
-		}
 	}
 
 	apply(compiler){
@@ -27,7 +21,7 @@ export class TSDeclerationsPlugin{
 			//Create shared bundle and remove old source files
 			const out = path.join(stats.compilation.options.output.path, this.out)
 			dts.bundle({
-                name: this.module,
+                name: 'Module',
                 out: out,
                 main: path.join(stats.compilation.options.output.path, stats.compilation.options.entry.replace('.ts', '.d.ts')),
                 removeSource: true
@@ -52,7 +46,7 @@ export class TSDeclerationsPlugin{
 				const name = module.substring(0, module.indexOf("'"))
 				
 				//Check whether module is entry
-				if (name === this.module){
+				if (name === 'Module'){
 			
 					//Prepare temp variables
 					let tempImports = []
@@ -124,7 +118,7 @@ export class TSDeclerationsPlugin{
 							root.push(exp)
 						}
 					}
-					imports[this.module] = root	
+					imports['Module'] = root	
 				}
 				
 				//Check whether name exists in imports
