@@ -16,27 +16,44 @@ npm install --save-dev ts-loader-decleration
 
 First ensure `declaration: true` is set in your `tsconfig.json` for declaration files to be generated.
 
-Then set `output.libraryTarget: 'commonjs'` in your Webpack config to allow the bundle to be imported.
-
 Finally include the plugin in your Webpack configuration.
 
 ```javascript
+const path = require('path')
 const webpack = require('webpack')
+const JavaScriptObfuscator = require('webpack-obfuscator')
+const nodeExternals = require('webpack-node-externals')
 const { TSDeclerationsPlugin } = require('ts-loader-decleration')
 
 module.exports = {
-	plugins: [
-		new TSDeclerationsPlugin({
-			out: './bundle.d.ts'
-		})
+	entry: './src/index.ts',
+	target: 'node',
+	resolve: {
+		extensions: ['.ts', '.js']
+	},
+	externals: [
+		nodeExternals()
 	],
+	output: {
+		path: path.resolve('./dist'),
+		filename: './index.js',
+		libraryTarget: "commonjs"
+	},
+	plugins: [
+		new TSDeclerationsPlugin(),
+		new webpack.optimize.UglifyJsPlugin(),
+		new JavaScriptObfuscator({
+			disableConsoleOutput: false
+		}),
+    ],
 	module: {
 		rules: [{
 			test: /\.ts$/,
-			loader: 'ts-loader'
+			loader: 'ts-loader',
+			exclude: /(node_modules|bower_components)/
 		}]
 	}
-};
+}
 ```
 
 Only modules exported from your entry file will be included in the bundled decleration.
