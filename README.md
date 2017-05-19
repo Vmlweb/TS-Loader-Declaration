@@ -35,7 +35,6 @@ module.exports = {
 		nodeExternals()
 	],
 	output: {
-		path: path.resolve('./dist'),
 		filename: './index.js',
 		libraryTarget: "commonjs"
 	},
@@ -56,4 +55,4 @@ module.exports = {
 }
 ```
 
-Only modules exported from your entry file will be included in the bundled decleration.
+Only modules exported from your entry file will be included in the bundled declaration.

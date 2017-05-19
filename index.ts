@@ -1,5 +1,4 @@
 import * as path from 'path'
-import * as rimraf from 'rimraf'
 import * as fs from 'fs'
 import * as dts from 'dts-bundle'
 import * as esprima from 'esprima'
@@ -28,7 +27,7 @@ export class TSDeclerationsPlugin{
             })
             
             //Remove source directory
-            rimraf.sync(path.join(stats.compilation.options.output.path, path.dirname(stats.compilation.options.entry)))
+            //rimraf.sync(path.join(stats.compilation.options.output.path, path.dirname(stats.compilation.options.entry)))
             
             //Read decleration bundle from file
             const bundle = fs.readFileSync(out).toString()
