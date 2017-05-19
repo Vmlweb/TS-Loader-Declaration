@@ -36,6 +36,7 @@ export class TSDeclerationsPlugin{
             //Prepare working variables
             let imports = {}
             let exports = []
+            let externals: { [key: string]: string[] } = {}
             
 			//Loop through each trimmed module
 			const subBundles = bundle.split('declare module \'')
@@ -49,16 +50,21 @@ export class TSDeclerationsPlugin{
 			
 					//Prepare temp variables
 					let tempImports = []
+					let tempExports = []
 		            let importing = false
 		            let exporting = false
+		            let exportingFile = false
+		            let exportingAll = false
 		            let filename = false
-		            let literal = false
 		            let start = 0
 		            let offset = 1
 		            let first = false
 					
 					//Loop through each token in module
-					for (const token of esprima.tokenize("'" + module, { range: true })){
+					const tokens = esprima.tokenize("'" + module, { range: true })
+					for (let i = 0; i < tokens.length; i++){
+						const token = tokens[i]
+                        const nextToken = tokens.length >= i + 1 ? tokens[i + 1] : undefined
 					
 						//Start importing
 						if (token.type === 'Keyword' && token.value === 'import'){
@@ -86,6 +92,11 @@ export class TSDeclerationsPlugin{
 							offset += 1
 						}
 			
+						//Exporting wildcard found
+                        if (exporting && token.type === 'Punctuator' && token.value === '*'){
+	                        exportingAll = true
+						}
+						
 						//Stop exporting type found
 						if (exporting && token.type === 'Keyword'){
 							exporting = false
@@ -94,35 +105,41 @@ export class TSDeclerationsPlugin{
 						//Start exporting
 						if (token.type === 'Keyword' && token.value === 'export'){
 							exporting = true
+							tempExports = []
 							start = token.range[0]
 						}
-						
-						//Export literally
-						/*if (exporting && token.type === 'Keyword') {
-							literal = true
-                        }
-                        if (exporting && literal && token.type === 'Identifier'){
-							exports.push(token.value)
-							literal = false
-							exporting = false
-							
-							//Replace with whitespace
-							module = this.replace(start, token.range[1], module)
-						}*/
 			
 						//Append export
-						if (exporting && token.type === 'Identifier'){
+						if (exporting && !exportingAll && token.type === 'Identifier'){
 							exports.push(token.value)
+							tempExports.push(token.value)
 						}
 			
 						//Stop exporting
 						if (exporting && token.type === 'Punctuator' && token.value === '}'){
 							exporting = false
 							
-							//Replace with whitespace
-							module = this.replace(start - offset, token.range[1] - (offset - 1), module)
-							offset += 1
+							//Check whether export ended
+                            if (nextToken && nextToken.type === 'Identifier' && nextToken.value === 'from'){
+	                            exportingFile = true
+	                        }else{
+							
+								//Replace with whitespace
+								module = this.replace(start - offset, token.range[1] - (offset - 1), module)
+								offset += 1
+							}
 						}
+						
+						//Stop exporting file
+						if ((exportingFile || exportingAll) && token.type === 'String'){
+	                        imports[token.value.replace(/\'/g, '')] = exportingAll ? ['*'] : tempExports
+	                        exportingFile = false
+	                        exportingAll = false
+	                        
+	                        //Replace with whitespace
+                            module = this.replace(start - offset, token.range[1] - (offset - 1), module)
+							offset += 1
+	                    }
 					}
 					
 					//Remove module wrapper and add to buffer
@@ -136,6 +153,47 @@ export class TSDeclerationsPlugin{
 					continue
 				}
 				
+				//Loop through and extract external exports
+				let tempImports = []
+				let importing = false
+				let filename = true
+				for (const token of esprima.tokenize("'" + module)){
+					
+					//Start importing
+					if (token.type === 'Keyword' && token.value === 'import'){
+						importing = true
+					}
+					
+					//Append import
+					if (importing && token.type === 'Identifier' && token.value !== 'from'){
+						tempImports.push(token.value)
+					}
+					
+					//Look for import filename
+					if (importing && token.value === 'from'){
+						filename = true
+					}
+					if (importing && filename && token.type === 'String'){
+						importing = false
+						filename = false
+						
+						//Add imports to externals
+						const name = token.value.replace(/\'/g, '')
+						
+						//Create externals category
+						if (!externals.hasOwnProperty(name)){
+							externals[name] = []
+						}
+						
+						//Add imports to externals category if not existing
+						for (const imprt of tempImports){
+							if (externals[name].indexOf(imprt) <= -1){
+								externals[name].push(imprt)
+							}
+						}
+					}
+				}
+				
 				//Find each import to include
 				for (const imprt of imports[name]){
 				
@@ -146,9 +204,22 @@ export class TSDeclerationsPlugin{
 					let type = false
 					let submodule
 					
+					//Export entire module
+					if (imprt === '*'){
+						
+						//Find range of exports to extract and remove imports
+						submodule = ''
+						for (const line of module.substring(module.indexOf('{') + 1).split('\n')){
+							if (line.trim().substring(0, 6) !== 'import'){
+								submodule += line + '\n'
+							}
+						}
+						end = submodule.lastIndexOf('}')
+					}
+					
 					//Check for start position of const
 					const checkConst = new RegExp('export(\\s|\\s.*\\s)(const|let|var|function)\\s' + imprt + '(|\\s|\\s.*\\s)({|:)').exec(module)
-					if (checkConst){
+					if (imprt !== '*' && checkConst){
 						
 						//Find range of import to extract
 						submodule = module.substring(checkConst.index)
@@ -157,7 +228,7 @@ export class TSDeclerationsPlugin{
 					
 					//Check for start position of import
 					const checkBraces = new RegExp('export(\\s|\\s.*\\s)(class|interface|enum)\\s' + imprt + '(|\\s|\\s.*\\s)({|:)').exec(module)
-					if (checkBraces){
+					if (imprt !== '*' && checkBraces){
 						
 						//Find range of import to extract
 						submodule = module.substring(checkBraces.index)
@@ -183,8 +254,25 @@ export class TSDeclerationsPlugin{
 				}
 			}
 			
+			//Remove externals which are not in use
+			Object.keys(externals).forEach(name => {
+				externals[name] = externals[name].filter(item => newBundle.indexOf(item) > -1)
+				
+				//Remove if empty
+				if (externals[name].length <= 0){
+					delete externals[name]
+				}
+			})
+			
+			//Prepare externals header
+			let header = ''
+			Object.keys(externals).forEach(name => {
+				header += 'import { ' + externals[name].join(', ') + ' } from "' + name + '" \n'
+			})
+			newBundle = header + newBundle
+			
 	        //Write new bundle to file
-	        fs.writeFileSync(out, beautify(newBundle.replace(/^ +/gm, ''), { indent_size: 1, indent_with_tabs: true }))
+	        fs.writeFileSync(out, beautify(newBundle.replace(/^ +/gm, '').replace(/\n\n/gm, ''), { indent_size: 1, indent_with_tabs: true }))
 		})
 	}
 	
