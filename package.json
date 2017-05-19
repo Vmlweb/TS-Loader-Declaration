@@ -1,6 +1,6 @@
 {
   "name": "ts-loader-decleration",
-  "version": "0.7.6",
+  "version": "0.7.12",
   "description": "Enables bundled Webpack Typescript declarations from exports.",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "single",
     "bundle"
   ],
-  "author": "Victor Leach <mail@vmlweb.co.uk>",
+  "author": "Vmlweb <mail@vmlweb.co.uk>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Vmlweb/TS-Loader-Decleration/issues"
