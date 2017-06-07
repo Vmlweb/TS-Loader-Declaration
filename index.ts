@@ -180,15 +180,24 @@ export class TSDeclerationsPlugin{
 						//Add imports to externals
 						const name = token.value.replace(/\'/g, '')
 						
-						//Create externals category
-						if (!externals.hasOwnProperty(name)){
-							externals[name] = []
-						}
+						//Check whether internal or external
+						if (name.startsWith('Module/')){
+
+							//Add to imports
+							imports[name] = tempImports						
+							
+						}else{
 						
-						//Add imports to externals category if not existing
-						for (const imprt of tempImports){
-							if (externals[name].indexOf(imprt) <= -1){
-								externals[name].push(imprt)
+							//Create externals category
+							if (!externals.hasOwnProperty(name)){
+								externals[name] = []
+							}
+							
+							//Add imports to externals category if not existing
+							for (const imprt of tempImports){
+								if (externals[name].indexOf(imprt) <= -1){
+									externals[name].push(imprt)
+								}
 							}
 						}
 					}
