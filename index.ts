@@ -87,13 +87,12 @@ export class TSDeclerationsPlugin{
 							filename = false
 							
 							//Merge or leave value if star
-							const val = imports[token.value.replace(/\'/g, '')] 
-							if (val){
-								if (val.indexOf('*') <= -1){
-									imports[token.value.replace(/\'/g, '')] = tempImports.concat(val)
-								}
-							}else{
-								imports[token.value.replace(/\'/g, '')] = tempImports
+							const name = token.value.replace(/\'/g, '')
+							if (imports[name] === undefined){
+								imports[name] = []
+							}
+							if (imports[name].indexOf('*') <= -1){
+								imports[name] = imports[name].concat(tempImports)
 							}
 							
 							//Replace with whitespace
@@ -142,14 +141,15 @@ export class TSDeclerationsPlugin{
 						//Stop exporting file
 						if ((exportingFile || exportingAll) && token.type === 'String'){
 	                        
-	                        //Merge or leave value if star
-							const val = imports[token.value.replace(/\'/g, '')] 
-							if (val){
-								if (val.indexOf('*') <= -1){
-									imports[token.value.replace(/\'/g, '')] = tempExports.concat(val)
-								}
-							}else{
-								imports[token.value.replace(/\'/g, '')] = exportingAll ? ['*'] : tempExports
+							//Merge or leave value if star
+							const name = token.value.replace(/\'/g, '')
+							if (imports[name] === undefined){
+								imports[name] = []
+							}
+							if (exportingAll){
+								imports[name] = [ '*' ]
+							}else if (imports[name].indexOf('*') <= -1){
+								imports[name] = imports[name].concat(tempExports)
 							}
 	                        
 	                        //Reset vars
@@ -204,7 +204,9 @@ export class TSDeclerationsPlugin{
 						if (name.startsWith('Module/')){
 
 							//Add to imports
-							imports[name] = tempImports						
+							if (imports[name].indexOf('*') <= -1){
+								imports[name] = tempImports			
+							}			
 							
 						}else{
 						
@@ -283,6 +285,9 @@ export class TSDeclerationsPlugin{
 				}
 			}
 			
+			console.log(imports)
+			console.log(exports)
+				
 			//Remove externals which are not in use
 			Object.keys(externals).forEach(name => {
 				externals[name] = externals[name].filter(item => newBundle.indexOf(item) > -1)
