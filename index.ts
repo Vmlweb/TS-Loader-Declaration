@@ -85,7 +85,16 @@ export class TSDeclerationsPlugin{
 						if (importing && filename && token.type === 'String'){
 							importing = false
 							filename = false
-							imports[token.value.replace(/\'/g, '')] = tempImports
+							
+							//Merge or leave value if star
+							const val = imports[token.value.replace(/\'/g, '')] 
+							if (val){
+								if (val.indexOf('*') <= -1){
+									imports[token.value.replace(/\'/g, '')] = tempImports.concat(val)
+								}
+							}else{
+								imports[token.value.replace(/\'/g, '')] = tempImports
+							}
 							
 							//Replace with whitespace
 							module = this.replace(start - offset, token.range[1] - (offset - 1), module)
@@ -114,7 +123,7 @@ export class TSDeclerationsPlugin{
 							exports.push(token.value)
 							tempExports.push(token.value)
 						}
-			
+						
 						//Stop exporting
 						if (exporting && token.type === 'Punctuator' && token.value === '}'){
 							exporting = false
@@ -132,7 +141,18 @@ export class TSDeclerationsPlugin{
 						
 						//Stop exporting file
 						if ((exportingFile || exportingAll) && token.type === 'String'){
-	                        imports[token.value.replace(/\'/g, '')] = exportingAll ? ['*'] : tempExports
+	                        
+	                        //Merge or leave value if star
+							const val = imports[token.value.replace(/\'/g, '')] 
+							if (val){
+								if (val.indexOf('*') <= -1){
+									imports[token.value.replace(/\'/g, '')] = tempExports.concat(val)
+								}
+							}else{
+								imports[token.value.replace(/\'/g, '')] = exportingAll ? ['*'] : tempExports
+							}
+	                        
+	                        //Reset vars
 	                        exportingFile = false
 	                        exportingAll = false
 	                        
