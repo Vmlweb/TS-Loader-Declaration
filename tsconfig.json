@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+	"baseUrl": ".",
+	"lib": [ "dom", "es6" ],
+	"target": "es5",
+	"module": "commonjs",
+    "declaration": true,
+    "moduleResolution": "node",
+    "strictNullChecks": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+  },
+  "exclude": [
+    "node_modules",
+    "bower_components",
+    "index.js",
+    "bundle.d.ts",
+    "dist"
+  ]
+}

@@ -182,6 +182,7 @@ export class TSDeclerationsPlugin{
 					//Start importing
 					if (token.type === 'Keyword' && token.value === 'import'){
 						importing = true
+						tempImports = []
 					}
 					
 					//Append import
