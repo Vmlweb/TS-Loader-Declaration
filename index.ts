@@ -22,7 +22,7 @@ export class TSDeclerationsPlugin{
 			dts.bundle({
                 name: 'Module',
                 out: out,
-                main: path.join(stats.compilation.options.output.path, stats.compilation.options.entry.replace('.ts', '.d.ts')),
+                main: path.join(stats.compilation.options.output.path, stats.compilation.options.output.filename.replace('.js', '.d.ts')),
                 removeSource: true
             })
             
