@@ -17,12 +17,18 @@ export class TSDeclerationsPlugin{
 		//Wait for compiler to emit files
 		compiler.plugin('done', (stats) => {
 			
+			//Detect which out exists
+			let main = path.join(stats.compilation.options.output.path, stats.compilation.options.entry.replace('.ts', '.d.ts'))
+			if (!fs.existsSync(main)){
+				main = path.join(stats.compilation.options.output.path, stats.compilation.options.output.filename.replace('.js', '.d.ts'))
+			}
+			
 			//Create shared bundle and remove old source files
-			const out = path.join(stats.compilation.options.output.path, this.out)
+			let out = path.join(stats.compilation.options.output.path, this.out)
 			dts.bundle({
                 name: 'Module',
-                out: out,
-                main: path.join(stats.compilation.options.output.path, stats.compilation.options.output.filename.replace('.js', '.d.ts')),
+                out,
+                main,
                 removeSource: true
             })
             

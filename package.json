@@ -1,6 +1,6 @@
 {
   "name": "ts-loader-decleration",
-  "version": "0.9.7",
+  "version": "0.9.9",
   "description": "Enables bundled Webpack Typescript declarations from exports.",
   "main": "index.js",
   "scripts": {
