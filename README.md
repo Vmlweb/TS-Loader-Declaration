@@ -56,3 +56,22 @@ module.exports = {
 ```
 
 Only modules exported from your entry file will be included in the bundled declaration.
+
+## Awesome Typescript Loader
+
+When using AWS there is an issue where imports will not be included in the declaration bundle unless it has been used literally. There is a loader included to patch this issue.
+
+```javascript
+{
+	test: /\.ts$/,
+	use: [{
+		loader: 'awesome-typescript-loader',
+		query: {
+			declaration: true,
+			//...
+		}
+	}, {
+		loader: 'ts-loader-decleration'
+	}]
+}
+```
