@@ -48,10 +48,15 @@ export class DeclerationsPlugin{
             }
 			
 			//Generate merged bundles
-			if (this.fs){
-				require('proxyquire').noCallThru()('dts-bundle/lib/index.js', { fs: this.fs }).bundle(options)
-			}else{
-				require('dts-bundle').bundle(options)
+			try{
+				if (this.fs){
+					require('proxyquire').noCallThru()('dts-bundle/lib/index.js', { fs: this.fs }).bundle(options)
+				}else{
+					require('dts-bundle').bundle(options)
+				}
+			}catch(err){
+				console.error(err)
+				return
 			}
             
             //Remove source directory
