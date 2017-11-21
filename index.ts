@@ -23,7 +23,13 @@ function loader(text){
 	
 	//Check whether public decorator given
 	if (this.query.publicDecorator){
-		newText = 'import { Public } from \'' + this.query.publicDecorator + '\'\n' + newText
+		
+		//Check whether public already being used
+		if (newText.indexOf('Public') < 0){
+			newText = 'import { Public } from \'' + this.query.publicDecorator + '\'\n' + newText
+		}
+		
+		//Add decorator to public
 		newText = newText.replace(/\spublic\s(?!constructor)/gm, ' @Public public ')
 		newText = newText.replace(/constructor\(public\s/gm, 'constructor(@Public public ')
 		newText = newText.replace(/,public\s/gm, ',@Public public ')
@@ -45,7 +51,13 @@ function loader(text){
 	
 	//Check whether private decorator given
 	if (this.query.privateDecorator){
-		newText = 'import { Private } from \'' + this.query.privateDecorator + '\'\n' + newText
+		
+		//Check whether public already being used
+		if (newText.indexOf('Private') < 0){
+			newText = 'import { Private } from \'' + this.query.privateDecorator + '\'\n' + newText
+		}
+		
+		//Add decorator to public
 		newText = newText.replace(/\sprivate\s(?!constructor)/gm, ' @Private private ')
 		newText = newText.replace(/constructor\(private\s/gm, 'constructor(@Private private ')
 		newText = newText.replace(/,private\s/gm, ',@Private private ')
@@ -67,7 +79,13 @@ function loader(text){
 	
 	//Check whether public decorator given
 	if (this.query.protectedDecorator){
-		newText = 'import { Protected } from \'' + this.query.protectedDecorator + '\'\n' + newText
+		
+		//Check whether public already being used
+		if (newText.indexOf('Protected') < 0){
+			newText = 'import { Protected } from \'' + this.query.protectedDecorator + '\'\n' + newText
+		}
+		
+		//Add decorator to public
 		newText = newText.replace(/\sprotected\s(?!constructor)/gm, ' @Protected protected ')
 		newText = newText.replace(/constructor\(protected\s/gm, 'constructor(@Protected protected ')
 		newText = newText.replace(/,protected\s/gm, ',@Protected protected ')
