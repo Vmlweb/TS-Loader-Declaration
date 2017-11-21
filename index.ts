@@ -24,8 +24,12 @@ function loader(text){
 	//Check whether public decorator given
 	if (this.query.publicDecorator){
 		newText = 'import { Public } from \'' + this.query.publicDecorator + '\'\n' + newText
+		newText = newText.replace(/\spublic\s(?!constructor)/gm, ' @Public public ')
+		newText = newText.replace(/constructor\(public\s/gm, 'constructor(@Public public ')
+		newText = newText.replace(/,public\s/gm, ',@Public public ')
 		
 		//Loop through and replace public access
+		/*
 		exp = /[^}]*\s(public)\s[^}]*\s*\([^}]*\)\s*{[^}]*}/gm
 		match = exp.exec(newText)
 		while (match != null) {
@@ -36,14 +40,19 @@ function loader(text){
 			//Next match
 			match = exp.exec(newText)
 		}
+		*/
 	}
 	
 	//Check whether private decorator given
 	if (this.query.privateDecorator){
 		newText = 'import { Private } from \'' + this.query.privateDecorator + '\'\n' + newText
+		newText = newText.replace(/\sprivate\s(?!constructor)/gm, ' @Private private ')
+		newText = newText.replace(/constructor\(private\s/gm, 'constructor(@Private private ')
+		newText = newText.replace(/,private\s/gm, ',@Private private ')
 		
 		//Loop through and replace public access
-		exp = /[^}]*\s(private)\s[^}]*\s*\([^}]*\)\s*{[^}]*}/gm
+		/*
+		exp = /(?:\s|constructor\(|,)(private)\s/gm///[^}]*\s(private)\s[^}]*\s*\([^}]*\)\s*{[^}]*}/gm
 		match = exp.exec(newText)
 		while (match != null) {
 			
@@ -53,14 +62,19 @@ function loader(text){
 			//Next match
 			match = exp.exec(newText)
 		}
+		*/
 	}
 	
 	//Check whether public decorator given
 	if (this.query.protectedDecorator){
 		newText = 'import { Protected } from \'' + this.query.protectedDecorator + '\'\n' + newText
+		newText = newText.replace(/\sprotected\s(?!constructor)/gm, ' @Protected protected ')
+		newText = newText.replace(/constructor\(protected\s/gm, 'constructor(@Protected protected ')
+		newText = newText.replace(/,protected\s/gm, ',@Protected protected ')
 		
 		//Loop through and replace public access
-		exp = /[^}]*\s(protected)\s[^}]*\s*\([^}]*\)\s*{[^}]*}/gm
+		/*
+		exp = /(?:\s|constructor\(|,)(protected)\s/gm///[^}]*\s(protected)\s[^}]*\s*\([^}]*\)\s*{[^}]*}/gm
 		match = exp.exec(newText)
 		while (match != null) {
 			
@@ -70,9 +84,8 @@ function loader(text){
 			//Next match
 			match = exp.exec(newText)
 		}
+		*/
 	}
-	
-	console.log(newText)
 	
 	return newText
 }
