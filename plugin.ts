@@ -21,13 +21,21 @@ export class DeclerationsPlugin{
 			
 			//Detect which out exists
 			let main = this.main
-			if (!main){
-				main = path.join(stats.compilation.options.output.path, stats.compilation.options.entry.replace('.ts', '.d.ts'))
-				if (!this.fs.existsSync(main)){
-					main = path.join(stats.compilation.options.output.path, stats.compilation.options.output.filename.replace('.js', '.d.ts'))
+			if (main){
+				if (typeof stats.compilation.options.entry !== 'string' && typeof stats.compilation.options.entry[main] === 'string'){
+					main = path.join(stats.compilation.options.output.path, stats.compilation.options.entry[main].replace('.ts', '.d.ts'))
+				}else{
+					main = path.join(stats.compilation.options.output.path, this.main)
 				}
 			}else{
-				main = path.join(stats.compilation.options.output.path, this.main)
+				if (typeof stats.compilation.options.entry !== 'string'){
+					throw new Error('TSLoaderDecleration: Must specify main option when using multiple entry points.')
+				}else{
+					main = path.join(stats.compilation.options.output.path, stats.compilation.options.entry.replace('.ts', '.d.ts'))
+					if (!this.fs.existsSync(main)){
+						main = path.join(stats.compilation.options.output.path, stats.compilation.options.output.filename.replace('.js', '.d.ts'))
+					}
+				}
 			}
 			
 			//End now if build failed

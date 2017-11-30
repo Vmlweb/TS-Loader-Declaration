@@ -26,7 +26,10 @@ const nodeExternals = require('webpack-node-externals')
 const { TSDeclerationsPlugin } = require('ts-loader-decleration')
 
 module.exports = {
-	entry: './src/index.ts',
+	entry: {
+		main: './src/index.ts',
+		other: './src/other.ts'
+	},
 	target: 'node',
 	resolve: {
 		extensions: ['.ts', '.js']
@@ -39,7 +42,9 @@ module.exports = {
 		libraryTarget: "commonjs"
 	},
 	plugins: [
-		new TSDeclerationsPlugin(),
+		new TSDeclerationsPlugin({
+			main: './src/index.d.ts'
+		}),
 		new webpack.optimize.UglifyJsPlugin(),
 		new JavaScriptObfuscator({
 			disableConsoleOutput: false
