@@ -43,7 +43,7 @@ module.exports = {
 	},
 	plugins: [
 		new TSDeclerationsPlugin({
-			main: './src/index.d.ts'
+			main: 'main'
 		}),
 		new webpack.optimize.UglifyJsPlugin(),
 		new JavaScriptObfuscator({
